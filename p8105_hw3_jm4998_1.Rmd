@@ -36,7 +36,8 @@ instacart %>%
   group_by(aisle) %>%
   summarize(n = n()) %>%
   arrange(desc(n)) %>%
-  top_n(1)
+  head(1) %>%
+  knitr::kable()
 
 instacart %>%
   distinct(aisle) %>%
@@ -46,15 +47,14 @@ instacart %>%
   group_by(aisle) %>%
   summarize(n = n()) %>%
   filter(n > 10000) %>%
-  ggplot(aes(x = aisle, y = n)) + 
-  geom_point() + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  ggrepel::geom_text_repel(aes(label = n),size = 2) +
+  ggplot(aes(x = reorder(aisle, n), y = n)) + 
+  geom_col(fill = "blue") + 
   labs(
     title = "Plot of Aisles Order Number",
     x = "Aisles",
     y = "Number of items ordered",
-    caption = "Data from instacart")
+    caption = "Data from instacart") +
+  coord_flip()
 
 instacart %>%
   filter(aisle %in% c("baking ingredients", "dog food care", 
@@ -77,7 +77,8 @@ instacart %>%
   ) %>%
   knitr::kable(caption = "Mean Order time of two product", 
                col.names = c("Product Name", "Sunday", "Monday", "Tuesday",
-                             "Wednesday", "Thursday", "Friday", "Saturday"))
+                             "Wednesday", "Thursday", "Friday", "Saturday"),
+               digits = 0)
 ```
 
 
@@ -98,6 +99,42 @@ brfss_ordered = brfss_smart2010 %>%
 brfss_ordered %>%
  filter(year == 2002) %>%
   group_by(locationabbr, locationdesc) %>%
-  summarize(n=n())
+  summarize(n = n()) %>%
+  group_by(locationabbr) %>%
+  summarize(observed_locations_2002 = n()) %>%
+  filter(observed_locations_2002 >= 7)
+
+brfss_ordered %>%
+ filter(year == 2010) %>%
+  group_by(locationabbr, locationdesc) %>%
+  summarize(n = n()) %>%
+  group_by(locationabbr) %>%
+  summarize(observed_locations_2010 = n()) %>%
+  filter(observed_locations_2010 >= 7)
+
+brfss_average = brfss_ordered %>%
+  filter(response == "Excellent") %>%
+  group_by(year, locationabbr) %>%
+  summarize(average_value = mean(data_value, na.omit = TRUE))
+brfss_average %>%
+  mutate(state = locationabbr) %>%
+  ggplot(aes(x = year, y = average_value, color = state)) + 
+    geom_point() + geom_line() + theme(legend.position = "bottom") +
+  labs(title = "Average value between 2002 and 2010 within state",
+       caption = "Data from BRFSS")
+
+brfss_ordered %>%
+  filter(year %in% c(2006, 2010),
+         locationabbr == "NY") %>%
+  mutate(county = locationdesc) %>%
+  ggplot(aes(x = response, y = data_value, fill = county)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.5) +
+  facet_grid(~year) + 
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  theme(legend.position = "bottom") +
+  labs(title = "Distribution of responses among counties in NY State",
+       caption = "Data from BRFSS")
+  
+  
 ```
 
