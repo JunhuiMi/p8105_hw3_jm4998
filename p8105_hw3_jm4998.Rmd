@@ -28,6 +28,7 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 # Problem 1
+### 0)
 ```{r}
 library(p8105.datasets)
 data("instacart")
@@ -38,7 +39,7 @@ instacart %>%
 
 Description of the dataset:
 
-The dataset contains `r length(instacart)` variables and `r length(pull(instacart, order_id))` observations. Some key variables are: "product_name", "aisle", "order_id", "user_id", "order_dow", "order_hour_of_day".
+The Instacart dataset is an online grocery shopping dataset in 2017. The dataset instacart contains `r length(instacart)` variables and `r length(pull(instacart, order_id))` observations. Some key variables are: "product_name", "aisle", "order_id", "user_id", "order_dow", "order_hour_of_day".
 
 Use the first there rows as an example: We can see that customer with user_id 112108 bought "Bulgarian Yogurt", "Organic 4% Milk Fat Whole Milk Cottage Cheese" and "Organic Celery Hearts" at 10:00 in the morning.
 
@@ -86,7 +87,7 @@ instacart %>%
   summarize(number_of_selling = n()) %>%
   arrange(desc(number_of_selling)) %>%
   top_n(3) %>%
-  knitr::kable(title = "Three most popular products",
+  knitr::kable(caption = "Three most popular products",
                col.names = c("Product category", "Product name",
                              "Number of selling"))
 ```
@@ -107,7 +108,7 @@ instacart %>%
     names_from = order_dow,
     values_from = meantime_of_selling
   ) %>%
-  knitr::kable(title = "Mean Order time of two product", 
+  knitr::kable(caption = "Mean Order time of two product", 
                col.names =
                  c("Product Name", "Sunday", "Monday", "Tuesday",
                    "Wednesday", "Thursday", "Friday", "Saturday"),
@@ -117,8 +118,7 @@ instacart %>%
 Above is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. We can conclude that the main order time of the two products are between 11:00 and 15:00.
 
 # Problem 2
-
-### 1)
+### 0)
 ```{r}
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -131,8 +131,9 @@ brfss_ordered = brfss_smart2010 %>%
                                           "Very good","Excellent")))
 ```
 
+Firstly, we do some cleaning on BRFSS data and focus on the “Overall Health” topic.
 
-### 2)
+### 1)
 ```{r}
 brfss_ordered %>%
  filter(year == 2002) %>%
@@ -141,8 +142,12 @@ brfss_ordered %>%
   group_by(locationabbr) %>%
   summarize(observed_locations_2002 = n()) %>%
   filter(observed_locations_2002 >= 7) %>%
-  knitr::kable(title = "Table 2002")
+  knitr::kable(caption = "Table 2002")
+```
 
+In 2002, there were 6 states (CT, FL, MA, NC, NJ, PA) observed at 7 or more locations.
+
+```{r}
 brfss_ordered %>%
  filter(year == 2010) %>%
   group_by(locationabbr, locationdesc) %>%
@@ -150,11 +155,12 @@ brfss_ordered %>%
   group_by(locationabbr) %>%
   summarize(observed_locations_2010 = n()) %>%
   filter(observed_locations_2010 >= 7) %>%
-  knitr::kable(title = "Table 2010")
+  knitr::kable(caption = "Table 2010")
 ```
 
+In 2010, there were 14 states (CA, CO, FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, WA) observed at 7 or more locations. The number of states increased and the number of observed locations in each state increased as well compared to 2002.
 
-### 3)
+### 2)
 ```{r}
 brfss_average = brfss_ordered %>%
   filter(response == "Excellent") %>%
@@ -163,13 +169,14 @@ brfss_average = brfss_ordered %>%
 brfss_average %>%
   mutate(state = locationabbr) %>%
   ggplot(aes(x = year, y = average_value, color = state)) + 
-    geom_point() + geom_line() + theme(legend.position = "bottom") +
+    geom_point() + geom_line() + 
   labs(title = "Average value between 2002 and 2010 within state",
        caption = "Data from BRFSS")
 ```
 
+The “spaghetti” plot above shows the average value between 2002 and 2010 within states. We can see that in year 2005, 2007 and 2009, most states experienced downs.
 
-### 4)
+### 3)
 ```{r}
 brfss_ordered %>%
   filter(year %in% c(2006, 2010),
@@ -179,13 +186,14 @@ brfss_ordered %>%
   geom_bar(stat = "identity", position = "dodge", width = 0.5) +
   facet_grid(~year) + 
   viridis::scale_fill_viridis(discrete = TRUE) +
-  theme(legend.position = "bottom") +
   labs(title = "Distribution of responses among counties in NY State",
        caption = "Data from BRFSS")
 ```
 
-# Problem 3
+The two-panel plot above shows the distribution of data_value for responses among locations in NY State in 2006 and 2010. We can see that in 2010, more counties such as Bronx and Erie were included. The value of "very good" also had a significant increase in year 2010.
 
+# Problem 3
+### 1)
 ```{r}
 accel_data = read_csv("../accel_data.csv") %>%
   janitor::clean_names() %>%
@@ -207,15 +215,33 @@ accel_data = read_csv("../accel_data.csv") %>%
   mutate(minute = factor(minute, levels = c(1:1440)))
 ```
 
+Description of the dataset:
+
+The accel_data contains five weeks of accelerometer data collected on a 63 year-old male with BMI 25. The dataset accel_data has `r length(accel_data)` variables and `r length(pull(accel_data, day_id))` observations. The existing variables are : `r colnames(accel_data)`. Key variables are: "week", "day", "minute" and "counts".
 
 ### 2)
 ```{r}
 accel_data %>%
   group_by(week, day) %>%
   summarize(total_activity = sum(counts)) %>%
-  knitr::kable(title = "Total activity for each day")
+  knitr::kable(caption = "Total activity for each day")
+
+accel_data %>%
+  group_by(week, day) %>%
+  summarize(total_activity = sum(counts)) %>%
+  ggplot(aes(x = week, y = total_activity, color = day)) +
+    geom_point() + geom_line() +
+  labs(title = "Total activity for each day",
+       caption = "Data from Columbia University Medical Center")
 ```
 
+We can conclude from the table and plot above that:
+
+1)The man's total activity did not fluctuate too much on Tuesday, Wednesday and Thursday probably due to routine work.
+
+2)The man's total activity fluctuated a lot on Monday, Friday, Saturday and Sunday.
+
+3)The man's total activity was extremely low on Saturdays in week 4 and 5. Probably he just stayed at home and did nothing. 
 
 ### 3)
 ```{r}
@@ -227,9 +253,16 @@ accel_data %>%
     labels = as.character(c(0:24))) +
     geom_point() + geom_line() + 
   viridis::scale_fill_viridis(discrete = TRUE) +
-  theme(legend.position = "bottom") +
   labs(title = "24-hour activity time courses",
        x = "Hours",
        y = "Activity Counts",
        caption = "Data from Columbia University Medical Center")
 ```
+
+The plot above shows the man's 24-hour activity time courses and we can clearly see that:
+
+1) The man usually gets up around 6 during weekdays and a bit late during weekends.
+
+2) The man usually exercises between 19 and 22 in the evening, and then goes to sleep after 22pm.
+
+3) The man usually has a lot of activities on Sunday noon, Saturday afternoon and Friday evening.
