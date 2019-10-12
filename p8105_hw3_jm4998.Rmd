@@ -28,10 +28,23 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 # Problem 1
-
 ```{r}
 library(p8105.datasets)
 data("instacart")
+instacart %>%
+  head(3) %>%
+  knitr::kable()
+```
+
+Description of the dataset:
+
+The dataset contains `r length(instacart)` variables and `r length(pull(instacart, order_id))` observations. Some key variables are: "product_name", "aisle", "order_id", "user_id", "order_dow", "order_hour_of_day".
+
+Use the first there rows as an example: We can see that customer with user_id 112108 bought "Bulgarian Yogurt", "Organic 4% Milk Fat Whole Milk Cottage Cheese" and "Organic Celery Hearts" at 10:00 in the morning.
+
+
+### 1)
+```{r}
 instacart %>%
   group_by(aisle) %>%
   summarize(n = n()) %>%
@@ -42,7 +55,12 @@ instacart %>%
 instacart %>%
   distinct(aisle) %>%
   nrow()
+```
 
+There are 134 aisles, and "fresh vegetables" are the most items ordered from.
+
+### 2)
+```{r}
 instacart %>%
   group_by(aisle) %>%
   summarize(n = n()) %>%
@@ -55,7 +73,12 @@ instacart %>%
     y = "Number of items ordered",
     caption = "Data from instacart") +
   coord_flip()
+```
 
+Above is a plot that shows the number of items ordered in each aisle, limiting to aisles with more than 10000 items ordered. There are 39 such aisles. Ranking the top 3 are "fresh vegetables", "fresh fruits", "packaged vegetables fruits".
+
+### 3)
+```{r}
 instacart %>%
   filter(aisle %in% c("baking ingredients", "dog food care", 
                       "packaged vegetables fruits")) %>%
@@ -63,10 +86,19 @@ instacart %>%
   summarize(number_of_selling = n()) %>%
   arrange(desc(number_of_selling)) %>%
   top_n(3) %>%
-  knitr::kable(caption = "Three most popular products",
+  knitr::kable(title = "Three most popular products",
                col.names = c("Product category", "Product name",
                              "Number of selling"))
+```
 
+Above is a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.
+
+The three most popular items in “baking ingredients” are "Light Brown Sugar", "Pure Baking Soda", "Cane Sugar". The three most popular items in “dog food care” are "Snack Sticks Chicken & Rice Recipe Dog Treats", "Organix Chicken & Brown Rice Recipe", "Small Dog Biscuits". The three most popular items in “packaged vegetables fruits” are "Organic Baby Spinach", "Organic Raspberries", "Organic Blueberries".
+
+The most popular items in “packaged vegetables fruits” have large numbers of selling compared to the most popular items in “dog food care”.
+
+### 4)
+```{r}
 instacart %>%
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
   group_by(product_name, order_dow) %>%
@@ -75,16 +107,18 @@ instacart %>%
     names_from = order_dow,
     values_from = meantime_of_selling
   ) %>%
-  knitr::kable(caption = "Mean Order time of two product", 
-               col.names = c("Product Name", "Sunday", "Monday", "Tuesday",
-                             "Wednesday", "Thursday", "Friday", "Saturday"),
+  knitr::kable(title = "Mean Order time of two product", 
+               col.names =
+                 c("Product Name", "Sunday", "Monday", "Tuesday",
+                   "Wednesday", "Thursday", "Friday", "Saturday"),
                digits = 0)
 ```
 
-
+Above is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. We can conclude that the main order time of the two products are between 11:00 and 15:00.
 
 # Problem 2
 
+### 1)
 ```{r}
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -95,7 +129,11 @@ brfss_ordered = brfss_smart2010 %>%
   mutate(response = forcats::fct_relevel(response, 
                                         c("Poor", "Fair", "Good", 
                                           "Very good","Excellent")))
+```
 
+
+### 2)
+```{r}
 brfss_ordered %>%
  filter(year == 2002) %>%
   group_by(locationabbr, locationdesc) %>%
@@ -103,7 +141,7 @@ brfss_ordered %>%
   group_by(locationabbr) %>%
   summarize(observed_locations_2002 = n()) %>%
   filter(observed_locations_2002 >= 7) %>%
-  knitr::kable()
+  knitr::kable(title = "Table 2002")
 
 brfss_ordered %>%
  filter(year == 2010) %>%
@@ -112,8 +150,12 @@ brfss_ordered %>%
   group_by(locationabbr) %>%
   summarize(observed_locations_2010 = n()) %>%
   filter(observed_locations_2010 >= 7) %>%
-  knitr::kable()
+  knitr::kable(title = "Table 2010")
+```
 
+
+### 3)
+```{r}
 brfss_average = brfss_ordered %>%
   filter(response == "Excellent") %>%
   group_by(year, locationabbr) %>%
@@ -124,7 +166,11 @@ brfss_average %>%
     geom_point() + geom_line() + theme(legend.position = "bottom") +
   labs(title = "Average value between 2002 and 2010 within state",
        caption = "Data from BRFSS")
+```
 
+
+### 4)
+```{r}
 brfss_ordered %>%
   filter(year %in% c(2006, 2010),
          locationabbr == "NY") %>%
@@ -136,4 +182,54 @@ brfss_ordered %>%
   theme(legend.position = "bottom") +
   labs(title = "Distribution of responses among counties in NY State",
        caption = "Data from BRFSS")
+```
+
+# Problem 3
+
+```{r}
+accel_data = read_csv("../accel_data.csv") %>%
+  janitor::clean_names() %>%
+  mutate(
+    weekday_weekend = case_when(
+    day %in% c("Saturday", "Sunday") ~ "weekend",
+    day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+    ~ "weekend",
+    TRUE ~ ""),
+    day = factor(day, 
+                 levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                            "Friday", "Saturday", "Sunday"))) %>%
+  pivot_longer(
+    starts_with("activity_"),
+    names_to = "minute", 
+    names_prefix = "activity_",
+    values_to = "counts"
+  ) %>%
+  mutate(minute = factor(minute, levels = c(1:1440)))
+```
+
+
+### 2)
+```{r}
+accel_data %>%
+  group_by(week, day) %>%
+  summarize(total_activity = sum(counts)) %>%
+  knitr::kable(title = "Total activity for each day")
+```
+
+
+### 3)
+```{r}
+accel_data %>%
+  arrange(week, day) %>%
+  ggplot(aes(x = minute, y = counts, color = day)) +
+  scale_x_discrete(
+    breaks = seq(0,1440,60), 
+    labels = as.character(c(0:24))) +
+    geom_point() + geom_line() + 
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  theme(legend.position = "bottom") +
+  labs(title = "24-hour activity time courses",
+       x = "Hours",
+       y = "Activity Counts",
+       caption = "Data from Columbia University Medical Center")
 ```
