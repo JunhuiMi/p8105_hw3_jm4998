@@ -195,7 +195,7 @@ The two-panel plot above shows the distribution of data_value for responses amon
 # Problem 3
 ### 1)
 ```{r}
-accel_data = read_csv("../accel_data.csv") %>%
+accel_data = read_csv("./dataset/accel_data.csv") %>%
   janitor::clean_names() %>%
   mutate(
     weekday_weekend = case_when(
